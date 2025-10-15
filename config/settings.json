@@ -1,0 +1,62 @@
+{
+  "xArm1": {
+    "IPAddress_left": "192.168.1.244",
+    "initialpos_left": [600, 205, -10],
+    "initialrot_left": [-90, -5, -39.5],
+    "initAngleList_left": [-56.9, 54.3, 20.1, 51.6, 82.2, 73.8, -88.7],
+    "IPAddress_right": "192.168.1.199",
+    "initialpos_right": [640, -195, -15],
+    "initialrot_right": [90, 5, 44],
+    "initAngleList_right": [60.7, 63.1, -24.6, 51.6, -85.2, 67, 97.5]
+  },
+
+  "xArm2": {
+    "IPAddress_left": "192.168.1.244",
+    "initialpos_left": [400, 0, -40],
+    "initialrot_left": [180, -25, 0],
+    "initAngleList_left": [0, 0, 0, 0, 0, 0, 0],
+    "IPAddress_right": "192.168.1.199",
+    "initialpos_right": [400, 0, -40],
+    "initialrot_right": [-179.9, -20, 0],
+    "initAngleList_right": [0, 0, 0, 0, 0, 0, 0]
+  },
+
+  "xArm3": {
+    "IPAddress_left": "192.168.1.244",
+    "initialpos_left": [300, -20, -44.5],
+    "initialrot_left": [180, 0, 0],
+    "initAngleList_left": [0, 0, 0, 0, 0, 0, 0],
+    "IPAddress_right": "192.168.1.199",
+    "initialpos_right": [300, 20, -44.5],
+    "initialrot_right": [180, 0, 0],
+    "initAngleList_right": [0, 0, 0, 0, 0, 0, 0]
+  },
+
+  "motive": {
+    "motiveServerIPAddress": "192.168.1.110",
+    "motiveLocalIPAddress": "192.168.1.105",
+    "participantNum": 2,
+    "otherRigidBodyNum": 0,
+    "idList": [2, 1]
+  },
+
+  "record":{
+    "isExportData": false,
+    "recordPath": "C:\\Users\\hapticslab\\Documents\\uno\\test\\",
+    "recordNum": 4,
+    "robotNum": 2,
+    "angleRecord": false
+  },
+
+  "fusion": {
+    "weightListPos": [0.5, 0.5, 0.5, 0.5],
+    "weightListRot": [0.5, 0.5, 0.5, 0.5]
+  },
+
+  "setting":{
+    "armMode": "xArm1",
+    "sleepTime": 5,
+    "loopTime": 23,
+    "frameRate": 100
+  }
+}

@@ -1,0 +1,98 @@
+通常初期位置
+  "xArm": {
+    "IPAddress_left": "192.168.1.244",
+    "initialpos_left": [600, 205, -10],
+    "initialrot_left": [-90, -5, -39.5],
+    "initAngleList_left": [-56.9, 54.3, 20.1, 51.6, 82.2, 73.8, -88.7],
+    "IPAddress_right": "192.168.1.199",
+    "initialpos_right": [620.9, -161.2, -36.2],
+    "initialrot_right": [89.3, 6.3, 43.6],
+    "initAngleList_right": [60.7, 63.1, -24.6, 51.6, -85.2, 67, 97.5]
+  },
+
+
+ツグミさん初期位置
+  "xArm": {
+    "IPAddress_left": "192.168.1.244",
+    "initialpos_left": [600, 205, -10],
+    "initialrot_left": [-90, -5, -39.5],
+    "initAngleList_left": [-56.9, 54.3, 20.1, 51.6, 82.2, 73.8, -88.7],
+    "IPAddress_right": "192.168.1.199",
+    "initialpos_right": [640, -195, -15],
+    "initialrot_right": [90, 5, 44],
+    "initAngleList_right": [60.7, 63.1, -24.6, 51.6, -85.2, 67, 97.5]
+  },
+
+
+
+rewindingのメモ
+                    #! Rewinding system
+                    if self.rewindingSystem:
+                        nowTime = time.perf_counter()
+                        if nowTime - lastTime > 0.7:
+                            rewindIndex = checkpoint.CheckDiff(self.loopCount, relativePosition["participant1"], relativePosition["participant3"], relativePosition["participant2"], relativePosition["participant4"])
+                            if isinstance(rewindIndex, int):
+                                print("Rewinding start")
+                                print("rewindIndex:", rewindIndex)
+                                print("loopCount:", self.loopCount)
+                                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+                                    sock.sendto(b'r1', (self.udpIPAddress, self.udpPort))
+
+                                threading.Thread(target=self.play_beep, args=([300, 300], [200, 200])).start()
+                                sleepTime = 2 / (self.loopCount - rewindIndex)
+
+                                while True:
+                                    relativePosition["participant3"] = np.array(participant3_data[self.loopCount]["position"])
+                                    relativePosition["participant4"] = np.array(participant4_data[self.loopCount]["position"])
+                                    relativeRotation["participant3"] = np.array(participant3_data[self.loopCount]["rotation"])
+                                    relativeRotation["participant4"] = np.array(participant4_data[self.loopCount]["rotation"])
+                                    print("到達１")
+                                    rewindWeightList = [[0.0, 0.0, 1.0, 1.0], [0.0, 0.0, 1.0, 1.0]]
+                                    robotpos, robotrot = caMotion.participant2robot(relativePosition, relativeRotation, rewindWeightList)
+                                    target_pose_left = transform_left.Transform(relativepos=robotpos["robot1"], relativerot=robotrot["robot1"], isLimit=False)
+                                    target_pose_right = transform_right.Transform(relativepos=robotpos["robot2"], relativerot=robotrot["robot2"], isLimit=False)
+                                    print("到達２")
+                                    
+                                    ret1 = arm_1.set_position(
+                                        x=target_pose_left[0], y=target_pose_left[1], z=target_pose_left[2],
+                                        roll=target_pose_left[3], pitch=target_pose_left[4], yaw=target_pose_left[5],
+                                        speed=20, wait=True
+                                    )
+                                    print("arm_1 set_position return:", ret1, "error_code:", arm_1.error_code)
+
+                                    ret2 = arm_2.set_position(
+                                        x=target_pose_right[0], y=target_pose_right[1], z=target_pose_right[2],
+                                        roll=target_pose_right[3], pitch=target_pose_right[4], yaw=target_pose_right[5],
+                                        speed=20, wait=True
+                                    )
+                                    print("arm_2 set_position return:", ret2, "error_code:", arm_2.error_code)
+
+                                    if arm_1.error_code != 0:
+                                        print("arm_1 error detected, cleaning...")
+                                        arm_1.clean_error()
+                                    if arm_2.error_code != 0:
+                                        print("arm_2 error detected, cleaning...")
+                                        arm_2.clean_error()
+                                    print("到達３")
+                                    
+                                    self.loopCount -= 1
+
+                                    if self.loopCount == rewindIndex:
+                                        threading.Thread(target=self.play_beep, args=([1000, 700], [200, 400])).start()
+                                        break
+
+                                    # time.sleep(sleepTime)
+                                print("Rewinding finish")
+                                self.loopCount = rewindIndex
+                                
+                                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+                                    sock.sendto(b'r2', (self.udpIPAddress, self.udpPort))
+                                    sock.sendto((str(rewindIndex)).encode(), (self.udpIPAddress, self.udpPort))
+
+                            # elif isinstance(rewindIndex, str):
+                            #     # threading.Thread(target=self.play_beep, args=([1000, 700], [200, 400])).start()
+
+                            elif rewindIndex is None:
+                                pass
+
+                            lastTime = nowTime
