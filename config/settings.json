@@ -23,11 +23,11 @@
 
   "xArm3": {
     "IPAddress_left": "192.168.1.244",
-    "initialpos_left": [300, -20, -44.5],
+    "initialpos_left": [300, -20, -90],
     "initialrot_left": [180, 0, 0],
     "initAngleList_left": [0, 0, 0, 0, 0, 0, 0],
     "IPAddress_right": "192.168.1.199",
-    "initialpos_right": [300, 20, -44.5],
+    "initialpos_right": [300, 20, -90],
     "initialrot_right": [180, 0, 0],
     "initAngleList_right": [0, 0, 0, 0, 0, 0, 0]
   },
@@ -37,12 +37,12 @@
     "motiveLocalIPAddress": "192.168.1.105",
     "participantNum": 2,
     "otherRigidBodyNum": 0,
-    "idList": [2, 1]
+    "idList": [1, 2]
   },
 
   "record":{
     "isExportData": false,
-    "recordPath": "C:\\Users\\hapticslab\\Documents\\uno\\test\\",
+    "recordPath": "C:\\Users\\hapticslab\\Documents\\uno\\forceps_skill_learning\\circle_agent_ex\\fujitani\\calibretion\\",
     "recordNum": 4,
     "robotNum": 2,
     "angleRecord": false
@@ -50,13 +50,15 @@
 
   "fusion": {
     "weightListPos": [0.5, 0.5, 0.5, 0.5],
-    "weightListRot": [0.5, 0.5, 0.5, 0.5]
+    "weightListRot": [0.5, 0.5, 0.5, 0.5],
+    "differenceLimit": 0.1,
+    "eulerOrder": 1
   },
 
   "setting":{
-    "armMode": "xArm1",
+    "armMode": "xArm3",
     "sleepTime": 5,
-    "loopTime": 23,
-    "frameRate": 100
+    "loopTime": 30,
+    "frameRate": 90
   }
 }

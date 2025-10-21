@@ -8,6 +8,7 @@ import json
 import threading
 from ctypes import windll
 import numpy as np
+import matplotlib.pyplot as plt
 from Participant.ParticipantMotion import ParticipantMotion
 from Robot.CAMotion import CAMotion
 from Robot.xArmTransform import xArmTransform
@@ -35,10 +36,18 @@ class ProcessorClass:
         # motive
         self.motiveserverIpAddress = settings["motive"]["motiveServerIPAddress"]
         self.motivelocalIpAddress = settings["motive"]["motiveLocalIPAddress"]
+        self.differenceLimit = settings["fusion"]["differenceLimit"]
         self.participantNum = settings["motive"]["participantNum"]
         self.otherRigidBodyNum = settings["motive"]["otherRigidBodyNum"]
         self.motionDataInputMode = "optitrack"
         self.idList = settings["motive"]["idList"]
+        self.eulerOrder = settings["fusion"]["eulerOrder"]
+        if self.eulerOrder == 1:
+            self.eulerLeft = [0, np.pi/2, np.pi]
+            self.eulerRight = [0, (-1) * np.pi/2, 0]
+        elif self.eulerOrder == 2:
+            self.eulerLeft = [0, 0, 0]
+            self.eulerRight = [(-1)*np.pi, 0, 0]
 
         # setting
         self.armMode = settings["setting"]["armMode"]
@@ -58,6 +67,8 @@ class ProcessorClass:
             self.initialrot_right = settings[self.armMode]["initialrot_right"]
             self.initAngleList_right = settings[self.armMode]["initAngleList_right"]
         
+        self.returnPos = []
+        self.timeList = []
 
     def mainloop(self):
         isEnablexArm = True
@@ -119,7 +130,7 @@ class ProcessorClass:
                         arm_1.set_servo_cartesian(transform_left.Transform(relativepos=robotpos["robot1"], relativerot=robotrot["robot1"], isLimit=False))
                         arm_2.set_servo_cartesian(transform_right.Transform(relativepos=robotpos["robot2"], relativerot=robotrot["robot2"], isLimit=False))
 
-                    if time.perf_counter() - taskStartTime >1.0:
+                    if time.perf_counter() - taskStartTime > 0.5:
                         velocity = self.velocity(relativePosition["participant1"], time.perf_counter())
                         if velocity:
                             velocityList.append(velocity)
@@ -154,9 +165,6 @@ class ProcessorClass:
 
                     elif keycode == "s":
                         time.sleep(self.sleepTime)
-                        #* Send the signal to another PC
-                        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-                            sock.sendto(b's', (self.udpIPAddress, self.udpPort))
                         winsound.Beep(400,300)
                         winsound.Beep(700,300)
                         winsound.Beep(1000,300)
@@ -171,15 +179,29 @@ class ProcessorClass:
 
 
         except KeyboardInterrupt:
-            returnVelocity_mean = returnAnalyzer.analyze(velocityList)
+            returnVelocity = returnAnalyzer.analyze(velocityList)
+            returnVelocity_mean = np.mean(returnVelocity)
+            returnVelocity_max = np.max(returnVelocity)
+            returnVelocity_min = np.min(returnVelocity)
             print("\nKeyboardInterrupt >> Stop: mainloop")
 
             self.taskTime.append(time.perf_counter() - taskStartTime)
-            self.PrintProcessInfo(returnVelocity_mean)
+            self.PrintProcessInfo(returnVelocity_mean, returnVelocity_max, returnVelocity_min)
 
             winsound.Beep(1000,300)
             winsound.Beep(700,300)
             winsound.Beep(400,300)
+            
+            plt.plot(velocityList)
+            plt.title("Velocity Profile")
+            plt.xlabel("Frame")
+            plt.ylabel("Velocity (m/s)")
+            plt.show()
+
+            plt.plot(returnVelocity)
+            plt.title("Return Velocities")
+            plt.ylabel("Velocity (m/s)")
+            plt.show()
 
             #* Disconnect
             if isEnablexArm:
@@ -196,14 +218,16 @@ class ProcessorClass:
             traceback.print_exc()
 
 
-    def PrintProcessInfo(self, returnVelocity_mean):
+    def PrintProcessInfo(self, returnVelocity_mean, returnVelocity_max, returnVelocity_min):
         print("----- Process info -----")
         print("Total loop count > ", self.loopCount)
         for ttask in self.taskTime:
             print("Task time\t > ", "{:.2f}".format(ttask), "[s]")
             print("Frame Rate\t > ", "{:.2f}".format(self.loopCount/ttask), "[fps]")
         print("Error count\t > ", self.errorCount)
-        print("Return Velocity > ", "{:.2f}".format(returnVelocity_mean), "[m/s]")
+        print("Mean Return Velocity\t > ", "{:.2f}".format(returnVelocity_mean), "[m/s]")
+        print("Max Return Velocity\t > ", "{:.2f}".format(returnVelocity_max), "[m/s]")
+        print("Min Return Velocity\t > ", "{:.2f}".format(returnVelocity_min), "[m/s]")
         print("------------------------")
 
 

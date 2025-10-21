@@ -81,7 +81,7 @@ class CAMotion:
         xarm_position = self.motive2xarm_transformation(motive_position, euler_left, euler_right)
         xarm_rotation = self.motive2xarm_transformation(motive_rotation, euler_left, euler_right)
 
-        for i in range(4):
+        for i in range(2):
             # ----- position ----- #
             weightedDiffPos = (np.array(xarm_position["participant" + str(i + 1)]) - np.array(self.beforePositions["participant" + str(i + 1)])) * weight[0][i]
 
